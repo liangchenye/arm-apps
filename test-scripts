@@ -1,0 +1,51 @@
+#!/bin/sh
+
+
+## setup enviornment
+IMAGE_NAME=ubuntu-arm
+IMAGE_VERSION=16.04
+
+TEST_PROC_NAME="test-demo-"$RANDOM
+
+dockerStart(){
+        ## Edit the running command
+        TEST_CMD="/bin/sh -c \"while true; do echo hello; sleep 1; done\""
+        docker run --name $TEST_PROC_NAME -d $IMAGE_NAME:$IMAGE_VERSION $TEST_CMD > /dev/nul
+}
+
+dockerStop(){
+        docker stop $TEST_PROC_NAME > /dev/nul
+        docker rm $TEST_PROC_NAME > /dev/nul
+}
+
+## Edit the testing code
+mainTest(){
+        IP=
+        PORT=
+
+        EXPECTED_BODY="TEST_BODY"
+        EXPECTED_CODE=200
+
+        body=`curl -s $IP:$PORT`
+        code=`curl -I -m 10 -o /dev/null -s -w %{http_code} $IP:$PORT`
+
+        if [ "$body" != "$EXPECTED_BODY" ]; then
+            echo "the return body does not match!"
+            return 1
+        fi
+
+        if [ "$code" != "$EXPECTED_CODE" ]; then
+            echo "the return code does not match!"
+            return 1
+        fi
+
+        return 0
+}
+
+
+dockerStart
+mainTest
+TEST_CODE=$?
+dockerStop
+
+exit $TEST_CODE
