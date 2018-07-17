@@ -1,0 +1,12 @@
+#!/bin/bash
+
+source rm_tests.sh
+source mkdir_tests.sh
+source cp_tests.sh
+source mv_tests.sh
+
+rm_tests.sh
+mkdir_tests.sh
+cp_tests.sh
+mv_tests.sh
+

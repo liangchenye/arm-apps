@@ -1,0 +1,44 @@
+#!/bin/bash
+
+## setup enviornment
+IMAGE_NAME=ubuntu
+IMAGE_VERSION=16.04
+DATE=$(date +%Y%m%d%H%M%S)
+TEST_PROC_NAME=$IMAGE_NAME"-"$DATE
+TEST_CMD="testcases"
+
+TEST_PATH=$(pwd)
+LOG_PATH=${TEST_PATH}"/LOG/"$TEST_PROC_NAME
+if [[ ! -e $LOG_PATH ]]; then
+	mkdir -p $LOG_PATH
+fi
+
+## start docker
+dockerStart(){
+	
+	sudo docker run -v $TEST_PATH:/opt  -v $LOG_PATH:/var/log \
+	--env "PATH=/opt:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin" \
+	--name $TEST_PROC_NAME -itd $IMAGE_NAME:$IMAGE_VERSION $TEST_CMD > /dev/null
+}
+
+## stop docker
+dockerStop(){
+	sudo docker stop $TEST_PROC_NAME > /dev/null
+	sudo docker rm $TEST_PROC_NAME > /dev/null
+}
+
+# program entry
+dockerStart
+
+START_CODE=$?
+if [ "$START_CODE" != "0" ]
+then
+	exit $START_CODE
+fi
+
+
+dockerStop
+TEST_CODE=$?
+
+exit $TEST_CODE
+

@@ -1,0 +1,53 @@
+#!/bin/bash
+
+LOG_WriteLog()
+{
+    local line_no=$1
+    local logmsg=$2
+
+    echo "`date "+%b %d %Y %H:%M:%S"`" ${TST_CMDS} "[line_no=${line_no}]:" \
+            "${logmsg}" | tee -a ${LOG_FILE}
+}
+
+tst_tmpdir()
+{
+	if [ -z "$TMPDIR" ]; then
+		export TMPDIR="/tmp"
+	fi
+
+	TST_TMPDIR=$(mktemp -d "$TMPDIR/$TST_CMDS.XXXXXXXXXX")
+
+	#chmod 777 "$TST_TMPDIR"
+
+	#TST_STARTWD=$(pwd)
+
+	cd "$TST_TMPDIR"
+}
+
+tst_rmdir()
+{
+	if [ -n "$TST_TMPDIR" ]; then
+		cd "$TST_ROOT"
+		rm -r -f "$TST_TMPDIR"
+	fi
+}
+
+run_test()
+{
+    tst_tmpdir
+
+    ${TST_SETUP}
+    for i in `seq ${TST_CNT}`
+    do
+        ${TST_TESTFUNC} $i
+
+        if [[ $? -eq 0 ]]; then
+                echo "${TST_CMDS}" "test" "$i"  "passed" | tee -a "/var/log/result"
+        else
+                echo "${TST_CMDS}" "test" "$i"  "failed" | tee -a "/var/log/result"
+        fi
+
+    done
+
+    tst_rmdir
+}
